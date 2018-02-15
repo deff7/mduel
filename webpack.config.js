@@ -1,4 +1,5 @@
 const path = require('path')
+const webpack = require('webpack')
 
 module.exports = {
   entry: './client/index.js',
@@ -14,7 +15,17 @@ module.exports = {
         use: [
           'babel-loader',
         ],
-      }
+      },
+      {
+        test: [/\.vert$/, /\.frag$/],
+        use: 'raw-loader',
+      },
     ],
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      'CANVAS_RENDERER': JSON.stringify(true),
+      'WEBGL_RENDERER': JSON.stringify(true)
+    }),
+  ]
 }

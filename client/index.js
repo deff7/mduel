@@ -1,3 +1,17 @@
-const foo = (bar) => console.log(bar)
+import Phaser from 'phaser'
 
-foo('Hello!')
+const phaserGame = new Phaser.Game(
+  800,
+  600,
+  Phaser.AUTO,
+  '',
+  {
+    preload: preload,
+    create: create,
+    update: update
+  }
+)
+
+const preload = () => {}
+const create = () => {}
+const update = () => {}
