@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"time"
 )
 
 var upgrader = websocket.Upgrader{}
@@ -34,12 +35,13 @@ func handleWebsocket(w http.ResponseWriter, r *http.Request) {
 	state := game.Start(0, 1)
 
 	go readFromSocket(c, receive)
-
+	ticker := time.NewTicker(30 * time.Millisecond)
 	for {
 		select {
-		case msg := <-send:
-			log.Println("s")
-			err = c.WriteMessage(websocket.TextMessage, msg)
+		//case msg := <-send:
+		case <-ticker.C:
+			state.Update()
+			err = c.WriteMessage(websocket.TextMessage, state.Encode())
 			if err != nil {
 				log.Println("write: ", err)
 				return

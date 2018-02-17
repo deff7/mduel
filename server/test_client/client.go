@@ -9,7 +9,12 @@ import (
 	"github.com/gorilla/websocket"
 	"net/url"
 	"sync"
-	//"time"
+
+	"encoding/json"
+	tm "github.com/buger/goterm"
+	//"github.com/davecgh/go-spew/spew"
+	"github.com/deff7/mduel/server/game"
+	"time"
 )
 
 func readFromConsole(out chan<- []byte, quit chan<- struct{}) {
@@ -73,13 +78,36 @@ func main() {
 	wg.Add(1)
 	go readFromSocket(c, receive, quit, &wg)
 
+	gameState := game.State{}
+	lastWord := ""
+
 	for {
 		select {
 		case msg := <-send:
-			log.Printf(" < %s", msg)
+			lastWord = string(msg)
 			c.WriteMessage(websocket.TextMessage, msg)
 		case msg := <-receive:
-			log.Printf(" > %s", msg)
+			err := json.Unmarshal(msg, &gameState)
+			if err != nil {
+				log.Fatal(err)
+			}
+			go func() {
+				tm.Clear()
+				tm.MoveCursor(1, 1)
+				tm.Printf("Enemy HP: %d", gameState.Players[1].HP)
+				spell := gameState.Players[0].Spell
+				if word := spell.NextWord; word != "" {
+					tm.Printf("\nNext word of power: %s", word)
+				}
+				if spell.BoltSpeed > 0 {
+					tm.Printf("\nBolt distance: %d", spell.Distance)
+				}
+				if lastWord != "" {
+					tm.Printf("\nLast word: %s", lastWord)
+				}
+				tm.Flush()
+				time.Sleep(30 * time.Millisecond)
+			}()
 		case <-interrupt:
 			log.Println("Use Ctrl-D to stop")
 		case <-quit:

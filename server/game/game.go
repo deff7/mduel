@@ -17,12 +17,28 @@ func (s *State) Encode() []byte {
 	return res
 }
 
+func (s *State) Update() {
+	enemy := s.Players[1]
+	spell := s.Players[0].Spell
+	if spell.BoltSpeed > 0 {
+		spell.Distance -= spell.BoltSpeed
+		if spell.Distance <= 0 {
+			enemy.Hurt((spell.powerLevel + 1) * 2)
+			spell.Discharge()
+		}
+	}
+}
+
 func (s *State) HandleMessage(msg string) {
+	log.Println(msg)
 	p := s.Players[0]
-	p.Spell.Check(msg)
-	if p.Spell.Cast() {
-		s.Players[1].HP -= (p.Spell.powerLevel + 1) * 2
-		p.Spell.powerLevel = 0
+
+	spell := p.Spell
+	spell.Check(msg)
+	if spell.Cast() {
+		log.Println("cast!")
+		spell.BoltSpeed = 16 + spell.powerLevel*5
+		spell.Distance = initialDistance
 	}
 }
 

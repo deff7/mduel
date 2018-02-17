@@ -1,7 +1,7 @@
 package game
 
 import (
-	//"log"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -18,7 +18,7 @@ const initialDistance = 1000
 
 func checkPrefix(s, pre string) bool {
 	if len(pre) > len(s) {
-		return true
+		return false
 	}
 	if s[:len(pre)] == pre {
 		return true
@@ -27,6 +27,9 @@ func checkPrefix(s, pre string) bool {
 }
 
 func needToEmpower(s string) bool {
+	if len(s) < 1 {
+		return false
+	}
 	return s[len(s)-1] == ' '
 }
 
@@ -38,36 +41,40 @@ func (s *Spell) Cast() bool {
 	return s.cast
 }
 
+func (s *Spell) Discharge() {
+	s.NextWord = ""
+	s.powerLevel = 0
+	s.BoltSpeed = 0
+}
+
+func (s *Spell) castOrEmpower(word, correct string) {
+	if checkPrefix(word, correct) {
+		if needToEmpower(word) {
+			s.Generate()
+			s.powerLevel += 1
+		} else {
+			s.cast = true
+		}
+	}
+}
+
 // Check how correctly player pronounced the spell
 func (s *Spell) Check(msg string) {
 	s.cast = false
 	if s.Empowering() {
-		if checkPrefix(msg, s.NextWord) {
-			if needToEmpower(msg) {
-				s.Generate()
-				s.powerLevel += 1
-			} else {
-				s.cast = true
-			}
-		}
+		s.castOrEmpower(msg, s.NextWord)
 	} else {
-		if checkPrefix(msg, "hit") {
-			if needToEmpower(msg) {
-				s.Generate()
-				s.powerLevel += 1
-			} else {
-				s.cast = true
-			}
-		}
+		s.castOrEmpower(msg, "hurto")
 	}
+	log.Printf("from check: %v", s.cast)
 }
 
 func (s *Spell) Generate() {
 	rand.Seed(time.Now().Unix())
 	words := []string{
-		"foo",
-		"bar",
-		"yoo",
+		"maxima",
+		"cruelo",
+		"damago",
 	}
 	s.NextWord = words[rand.Int()%len(words)]
 }
