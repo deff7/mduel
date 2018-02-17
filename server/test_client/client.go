@@ -6,10 +6,10 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/gorilla/websocket"
+	"net/url"
 	"sync"
-	"time"
-	//	"github.com/gorilla/websocket"
-	//"net/url"
+	//"time"
 )
 
 func readFromConsole(out chan<- []byte, quit chan<- struct{}) {
@@ -25,16 +25,21 @@ func readFromConsole(out chan<- []byte, quit chan<- struct{}) {
 	}
 }
 
-func readFromSocket(out chan<- []byte, quit <-chan struct{}, wg *sync.WaitGroup) {
+func readFromSocket(conn *websocket.Conn, out chan<- []byte, quit <-chan struct{}, wg *sync.WaitGroup) {
 	defer log.Println("Socket reader stopped")
+	defer wg.Done()
+
 	for {
 		select {
 		case <-quit:
-			wg.Done()
 			return
 		default:
-			out <- []byte("test")
-			time.Sleep(time.Second)
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			out <- msg
 		}
 	}
 }
@@ -51,14 +56,28 @@ func main() {
 	receive := make(chan []byte)
 	quit := make(chan struct{})
 
+	u := url.URL{Scheme: "ws", Host: "localhost:3000", Path: "/socket"}
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		c.WriteMessage(
+			websocket.CloseMessage,
+			websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""),
+		)
+		c.Close()
+	}()
+
 	go readFromConsole(send, quit)
 	wg.Add(1)
-	go readFromSocket(receive, quit, &wg)
+	go readFromSocket(c, receive, quit, &wg)
 
 	for {
 		select {
 		case msg := <-send:
 			log.Printf(" < %s", msg)
+			c.WriteMessage(websocket.TextMessage, msg)
 		case msg := <-receive:
 			log.Printf(" > %s", msg)
 		case <-interrupt:
