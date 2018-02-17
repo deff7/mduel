@@ -22,5 +22,7 @@ func main() {
 	fileServer := http.StripPrefix("/static/", http.FileServer(http.Dir("data/static")))
 	http.Handle("/static/", fileServer)
 
+	http.HandleFunc("/socket", handleWebsocket)
+
 	log.Fatal(http.ListenAndServe("localhost:3000", nil))
 }
