@@ -19,10 +19,10 @@ func (s *State) Encode() []byte {
 
 func (s *State) HandleMessage(msg string) {
 	p := s.Players[0]
-	p.CheckSpelling(msg)
-	if p.Cast() {
-		s.Players[1].HP -= (p.powerLevel + 1) * 2
-		p.powerLevel = 0
+	p.Spell.Check(msg)
+	if p.Spell.Cast() {
+		s.Players[1].HP -= (p.Spell.powerLevel + 1) * 2
+		p.Spell.powerLevel = 0
 	}
 }
 
