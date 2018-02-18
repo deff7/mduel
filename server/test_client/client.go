@@ -12,9 +12,9 @@ import (
 
 	"encoding/json"
 	tm "github.com/buger/goterm"
-	//"github.com/davecgh/go-spew/spew"
+	//	"github.com/davecgh/go-spew/spew"
 	"github.com/deff7/mduel/server/game"
-	"time"
+	//	"time"
 )
 
 func readFromConsole(out chan<- []byte, quit chan<- struct{}) {
@@ -91,23 +91,21 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			go func() {
-				tm.Clear()
-				tm.MoveCursor(1, 1)
-				tm.Printf("Enemy HP: %d", gameState.Players[1].HP)
-				spell := gameState.Players[0].Spell
-				if word := spell.NextWord; word != "" {
-					tm.Printf("\nNext word of power: %s", word)
-				}
-				if spell.BoltSpeed > 0 {
-					tm.Printf("\nBolt distance: %d", spell.Distance)
-				}
-				if lastWord != "" {
-					tm.Printf("\nLast word: %s", lastWord)
-				}
-				tm.Flush()
-				time.Sleep(30 * time.Millisecond)
-			}()
+			tm.Clear()
+			tm.MoveCursor(1, 1)
+			tm.Printf("Enemy HP: %d", gameState.Players[1].HP)
+			spell := gameState.Players[0].Spell
+			if word := spell.NextWord; word != "" {
+				tm.Printf("\nNext word of power: %s", word)
+			}
+			if spell.BoltSpeed > 0 {
+				tm.Printf("\nBolt distance: %d", spell.Distance)
+			}
+			if lastWord != "" {
+				tm.Printf("\nLast word: %s", lastWord)
+			}
+			tm.Flush()
+			//time.Sleep(100 * time.Millisecond)
 		case <-interrupt:
 			log.Println("Use Ctrl-D to stop")
 		case <-quit:

@@ -45,6 +45,7 @@ func (s *Spell) Discharge() {
 	s.NextWord = ""
 	s.powerLevel = 0
 	s.BoltSpeed = 0
+	s.Distance = 0
 }
 
 func (s *Spell) castOrEmpower(word, correct string) {
