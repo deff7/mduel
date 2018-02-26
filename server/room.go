@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/deff7/mduel/server/game"
 	"log"
 	"time"
@@ -25,11 +26,32 @@ func (r *Room) vacant() bool {
 func (r *Room) add(c *playerConnection) {
 	r.playerConnections[c] = true
 	c.room = r
+	msg, err := json.Marshal(struct {
+		PlayerID    int
+		PlayerIndex int
+	}{
+		PlayerID:    c.id,
+		PlayerIndex: len(r.playerConnections) - 1,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	c.send <- msg
 
 	if !r.vacant() {
 		r.state = st_game_started
 		ids := []int{}
 		for pconn := range r.playerConnections {
+			msg, err := json.Marshal(struct {
+				Ready bool
+			}{
+				Ready: true,
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
+			pconn.send <- msg
+
 			ids = append(ids, pconn.id)
 		}
 		r.gameState = game.Start(ids[0], ids[1])
@@ -39,24 +61,23 @@ func (r *Room) add(c *playerConnection) {
 
 func (r *Room) run() {
 	log.Println("room running...")
-	ticker := time.NewTicker(30 * time.Millisecond)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	for {
 		select {
 		case <-ticker.C:
 			if r.state == st_wait_for_players {
 			} else if r.state == st_game_started {
 				r.gameState.Update()
+				msg := r.gameState.Encode()
 				for c := range r.playerConnections {
-					go func() {
-						c.send <- r.gameState.Encode()
-					}()
+					c.send <- msg
 				}
 			}
 		case msg := <-r.incomming:
 			if r.state == st_game_started {
 				go func() {
 					log.Println("handle message from client")
-					r.gameState.HandleMessage(string(msg))
+					r.gameState.HandleMessage(msg)
 				}()
 			}
 		}

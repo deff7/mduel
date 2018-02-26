@@ -1,17 +1,14 @@
 import Phaser from 'phaser'
+import MainScene from './MainScene'
 
-const phaserGame = new Phaser.Game(
-  800,
-  600,
-  Phaser.AUTO,
-  '',
-  {
-    preload: preload,
-    create: create,
-    update: update
-  }
-)
+let config = {
+  width: 800,
+  height: 600,
+  type: Phaser.AUTO,
+  parent: 'canvas',
+  scene: [
+    MainScene,
+  ],
+}
 
-const preload = () => {}
-const create = () => {}
-const update = () => {}
+let game = new Phaser.Game(config)

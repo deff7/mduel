@@ -6,10 +6,16 @@ import (
 	"time"
 )
 
+type SpellWord struct {
+	Type string
+	Word string
+}
+
 type Spell struct {
 	Distance   int
 	BoltSpeed  int
 	NextWord   string
+	Words      []*SpellWord
 	powerLevel int
 	cast       bool
 }

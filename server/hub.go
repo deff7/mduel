@@ -15,6 +15,12 @@ type Hub struct {
 	unregister chan *playerConnection
 }
 
+type serviceMessage struct {
+	PlayerID    int
+	PlayerIndex int
+	Ready       bool
+}
+
 func newHub() *Hub {
 	return &Hub{
 		register:   make(chan *playerConnection),
